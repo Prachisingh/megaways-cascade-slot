@@ -37,23 +37,23 @@ public class SlotMachine {
 
         printSlotFace(slotFace);
 
-        List<WinData>  winDataList = new ArrayList<>();
+        List<WinData> winDataList = new ArrayList<>();
         int cascadeCounter = 0;
-        BigDecimal totalWin = BigDecimal.ZERO;
 
-        do{
+        do {
             cascadeCounter++;
-            winDataList = calculateWin(slotFace, stake, boardHeight, boardWidth, totalWin);
-            if(!winDataList.isEmpty()) {
-                List<String[]> slotFaceContainingRemovedSymbols = removeSymFromWinPos(winDataList, slotFace);
-                System.out.println("Screen after removing Winning Symbols");
-                printSlotFace(slotFaceContainingRemovedSymbols);
-                // Shift symbols downwards
-                shiftSymbols(slotFaceContainingRemovedSymbols);
-                System.out.println("Shifted Symbols ");
-                printSlotFace(slotFaceContainingRemovedSymbols);
-                fillEmptyPosition(slotFaceContainingRemovedSymbols, stopPosition);
+            winDataList = calculateWin(slotFace, stake, boardHeight, boardWidth);
+            if (!winDataList.isEmpty()) {
+                System.out.println("============================================");
                 System.out.println("Cascade: " + cascadeCounter);
+                removeSymFromWinPos(winDataList, slotFace);
+                System.out.println("Screen after removing Winning Symbols");
+                printSlotFace(slotFace);
+                shiftSymbolsDownwards(slotFace);
+                System.out.println();
+                System.out.println("Shifted Symbols ");
+                printSlotFace(slotFace);
+                fillEmptyPosition(slotFace, stopPosition);
             }
         } while (!winDataList.isEmpty());
 
@@ -64,10 +64,10 @@ public class SlotMachine {
         List<String[]> bgReels = getReelSets().get(0);
         List<Integer> reelLengths = GameUtility.getReelLength(bgReels);
         int reelIdx = 0;
-        for(String[] reel: slotFace){
-            for(int i = boardHeight  -1; i >= 0; i--){
+        for (String[] reel : slotFace) {
+            for (int i = boardHeight - 1; i >= 0; i--) {
                 if (reel[i].contains("-1")) {
-                    stopPositions.set(reelIdx, stopPositions.get(reelIdx) + reelLengths.get(reelIdx) -1);
+                    stopPositions.set(reelIdx, stopPositions.get(reelIdx) + reelLengths.get(reelIdx) - 1);
                     stopPositions.set(reelIdx, stopPositions.get(reelIdx) % reelLengths.get(reelIdx));
 
                     reel[i] = bgReels.get(reelIdx)[stopPositions.get(reelIdx)];
@@ -75,31 +75,31 @@ public class SlotMachine {
             }
             reelIdx++;
         }
-        System.out.println("Updated stop positions: " + stopPositions.stream().map(Object::toString).collect(Collectors.joining("-")));
-        System.out.println("updated screen ");
+        System.out.println("New stop positions: " + stopPositions.stream().map(Object::toString).collect(Collectors.joining("-")));
+        System.out.println("New screen ");
         printSlotFace(slotFace);
         return slotFace;
     }
 
-    private static void shiftSymbols(List<String[]> slotFaceContainingRemovedSymbols) {
+    private static void shiftSymbolsDownwards(List<String[]> slotFaceContainingRemovedSymbols) {
         boolean some;
-        for(String[] reel: slotFaceContainingRemovedSymbols){
-        for(int i = boardHeight - 1; i > 0; i--) {
-            if (reel[i].contains("-1")) {
-                some = false;
-                for (int j = i; j > 0; j--) {
-                    if (!reel[j - 1].contains("-1")) {
-                        some = true;
-                    }
-                    reel[j] = reel[j - 1];
+        for (String[] reel : slotFaceContainingRemovedSymbols) {
+            for (int i = boardHeight - 1; i > 0; i--) {
+                if (reel[i].contains("-1")) {
+                    some = false;
+                    for (int j = i; j > 0; j--) {
+                        if (!reel[j - 1].contains("-1")) {
+                            some = true;
+                        }
+                        reel[j] = reel[j - 1];
 
-                }
-                reel[0] = "  -1";
-                if (some) {
-                    i++;
+                    }
+                    reel[0] = "  -1";
+                    if (some) {
+                        i++;
+                    }
                 }
             }
-        }
         }
     }
 
@@ -113,7 +113,7 @@ public class SlotMachine {
         }
     }
 
-    private static List<String[]> removeSymFromWinPos(List<WinData> winDataList, List<String[]> slotFace) {
+    private static void removeSymFromWinPos(List<WinData> winDataList, List<String[]> slotFace) {
         for (WinData win : winDataList) {
             for (Integer pos : win.getPosList()) {
                 int row = pos / boardWidth;
@@ -122,7 +122,6 @@ public class SlotMachine {
             }
 
         }
-        return slotFace;
     }
 
     private static String[] selectReels(int boardHeight, String[] reel, int position) {
@@ -133,7 +132,8 @@ public class SlotMachine {
         return boardReel;
     }
 
-    private static List<WinData> calculateWin(List<String[]> slotFace, int stake, int boardHeight, int boardWidth, BigDecimal totalWin) {
+    private static List<WinData> calculateWin(List<String[]> slotFace, int stake, int boardHeight, int boardWidth) {
+        BigDecimal totalWin = BigDecimal.ZERO;
         List<WinData> winDataList = new ArrayList<>();
 
         for (int row = 0; row < boardHeight; row++) {
@@ -211,6 +211,4 @@ public class SlotMachine {
         winData.setSymbolName(symToCompare);
         return winData;
     }
-
-
 }
