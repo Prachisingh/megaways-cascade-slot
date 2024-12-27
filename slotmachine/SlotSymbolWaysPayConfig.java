@@ -18,8 +18,12 @@ public class SlotSymbolWaysPayConfig {
             return winAmounts.getFirst();
         } else if (matchedColumnsCount - minimumMatch == 1) {
             return winAmounts.get(1);
-        } else {
+        } else if (matchedColumnsCount - minimumMatch == 2) {
             return winAmounts.get(2);
+        } else if (matchedColumnsCount - minimumMatch == 3) {
+            return winAmounts.get(3);
+        } else {
+            return winAmounts.getLast();
         }
     }
 
@@ -33,7 +37,7 @@ public class SlotSymbolWaysPayConfig {
     }
 
     public SlotSymbolWaysPayConfig addWild(String wildSymbolId) {
-        if(wilds == null) wilds = new HashSet<>();
+        if (wilds == null) wilds = new HashSet<>();
 
         wilds.add(wildSymbolId);
 

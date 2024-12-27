@@ -1,6 +1,5 @@
 package slotmachine;
 
-import slotmachine.service.WeightedPrizeService;
 import slotmachine.util.GameUtility;
 
 import java.math.BigDecimal;
@@ -8,30 +7,86 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static slotmachine.GameConfiguration.*;
+import static slotmachine.GameConfiguration.getPayout;
 
-public class SlotMachine {
+public class FreeSpins {
+    int stake = 1;
+    static Random rng = new Random();
 
     public static void main(String[] args) {
-        int stake = 1;
-        WeightedPrizeService weightedPrizeService = new WeightedPrizeService();
-        play(stake);
-
+        playFreeSpins(rng);
     }
 
-    public static Spin play(int stake) {
-        Random rng = new Random();
-        Spin baseGameResponse = playBaseGame(stake);
-        if (baseGameResponse.isFsTriggered) {
-            //System.out.println("========================= Fs triggered from base game ===============================");
-            Spin freeSpinResponse = FreeSpins.playFreeSpins(rng);
-            //System.out.println("Total Free Spin Wins " + freeSpinResponse.getTotalWin());
+    public static Spin playFreeSpins(Random rng) {
+        Spin freeSpin = new Spin();
+        BigDecimal totalWin = BigDecimal.ZERO;
+        int fsNum = 1;
+        for (int i = 5; i > 0; i--) {
+
+            //System.out.println("Free Spin: " + fsNum++);
+
+            List<Integer> stopPosition = new ArrayList<>();
+            String[] topReel = getTopReel(rng);
+
+
+            List<String[]> slotFace = new ArrayList<>();
+
+            int stopPos;
+            List<String[]> bgReelsA = getReelSets().get(0);
+            for (String[] reel : bgReelsA) {
+                stopPos = rng.nextInt(reel.length); //
+                String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
+                stopPosition.add(stopPos);
+                slotFace.add(slotFaceReel);
+            }
+            slotFace.add(topReel);
+            fillTopReel(slotFace, topReel);
+
+            // 0-6-27-10-3
+
+            //System.out.println("Stop Positions:" + stopPosition.stream().map(Object::toString).collect(Collectors.joining("-")));
+            //System.out.println("Screen:");
+            printSlotFace(slotFace);
+
+            List<WinData> winDataList = new ArrayList<>();
+            int cascadeCounter = 0;
+
+            do {
+                cascadeCounter++;
+                winDataList = calculateWin(slotFace, 1, boardHeight, boardWidth);
+                boolean isFsRetriggered = checkForScatterSym(slotFace);
+                if (isFsRetriggered) {
+                    i = i + 5;
+                }
+                totalWin = getTotalWin(winDataList, totalWin);
+                if (!winDataList.isEmpty()) {
+                    //System.out.println("============================================");
+                    //System.out.println("Cascade: " + cascadeCounter);
+                    removeSymFromWinPos(winDataList, slotFace);
+                    //System.out.println("Screen after removing Winning Symbols");
+                    printSlotFace(slotFace);
+                    shiftSymbolsDownwards(slotFace);
+                    int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
+                    //System.out.println();
+                    //System.out.println("Shifted Symbols ");
+                    printSlotFace(slotFace);
+                    if (numOfEmptySym > 0) {
+                        fillTopReelEmptyPos(rng, numOfEmptySym, slotFace);
+                    }
+
+                    fillEmptyPosition(slotFace, stopPosition, rng, numOfEmptySym);
+                }
+            } while (!winDataList.isEmpty());
+
         }
+        freeSpin.setTotalWin(totalWin);
+        //System.out.println("Total Fs win: " + totalWin);
 
-        return baseGameResponse;
+        return freeSpin;
     }
 
-    public static Spin playBaseGame(int stake) {
-        Spin spin = new Spin();
+
+    public static BigDecimal play(int stake) {
 //        weightedPrizeService.getPrize(new Ra)
         Random rng = new Random();
         List<Integer> stopPosition = new ArrayList<>();
@@ -42,7 +97,7 @@ public class SlotMachine {
         List<String[]> slotFace = new ArrayList<>();
 
         int stopPos;
-        List<String[]> bgReelsA = getReelSets().get(0);
+        List<String[]> bgReelsA = getReelSets().get(2);
         for (String[] reel : bgReelsA) {
             stopPos = rng.nextInt(reel.length); //
             String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
@@ -63,11 +118,10 @@ public class SlotMachine {
 
         List<WinData> winDataList = new ArrayList<>();
         int cascadeCounter = 0;
-        boolean fsTriggered = false;
+
         do {
             cascadeCounter++;
             winDataList = calculateWin(slotFace, stake, boardHeight, boardWidth);
-            fsTriggered = checkForScatterSym(slotFace);
             totalWin = getTotalWin(winDataList, totalWin);
             if (!winDataList.isEmpty()) {
                 //System.out.println("============================================");
@@ -88,12 +142,9 @@ public class SlotMachine {
             }
         } while (!winDataList.isEmpty());
 
-        //System.out.println("total Win of Base Game is: " + totalWin);
+        //System.out.println("total Win of spin is: " + totalWin);
 
-        spin.setFsTriggered(fsTriggered);
-        spin.setTotalWin(totalWin);
-
-        return spin;
+        return totalWin;
     }
 
     private static BigDecimal getTotalWin(List<WinData> winDataList, BigDecimal totalWin) {
@@ -293,7 +344,7 @@ public class SlotMachine {
             }
         }
         if (counter >= 3) {
-            //System.out.println("Free Spins triggered");
+            //System.out.println("Free Spins Re-triggered");
             return true;
         }
         return false;

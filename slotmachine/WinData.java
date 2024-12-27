@@ -10,6 +10,7 @@ public class WinData {
     List<Integer> posList;
     String symbolName;
     BigDecimal winAmount;
+    BigDecimal totalWin;
 
     public void setBasePayout(BigDecimal basePayout) {
         this.basePayout = basePayout;
