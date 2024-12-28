@@ -21,11 +21,11 @@ public class SlotMachine {
     public static Spin play(int stake) {
         Random rng = new Random();
         Spin baseGameResponse = playBaseGame(stake);
-        if (baseGameResponse.isFsTriggered) {
-            //System.out.println("========================= Fs triggered from base game ===============================");
-            Spin freeSpinResponse = FreeSpins.playFreeSpins(rng);
-            //System.out.println("Total Free Spin Wins " + freeSpinResponse.getTotalWin());
-        }
+//        if (baseGameResponse.isFsTriggered) {
+//            System.out.println("========================= Fs triggered from base game ===============================");
+//            Spin freeSpinResponse = FreeSpins.playFreeSpins(rng);
+//            System.out.println("Total Free Spin Wins " + freeSpinResponse.getTotalWin());
+//        }
 
         return baseGameResponse;
     }
@@ -42,12 +42,23 @@ public class SlotMachine {
         List<String[]> slotFace = new ArrayList<>();
 
         int stopPos;
+        int reelIdx = 1;
         List<String[]> bgReelsA = getReelSets().get(0);
         for (String[] reel : bgReelsA) {
             stopPos = rng.nextInt(reel.length); //
+            if (reelIdx == 1 || reelIdx == 2) {
+                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1And2Sym());
+            }
+            if (reelIdx == 3 || reelIdx == 4) {
+                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3And4Sym());
+            }
+            if (reelIdx == 5 || reelIdx == 6) {
+                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5And6Sym());
+            }
             String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
             stopPosition.add(stopPos);
             slotFace.add(slotFaceReel);
+            reelIdx++;
         }
         slotFace.add(topReel);
         fillTopReel(slotFace, topReel);
@@ -59,14 +70,14 @@ public class SlotMachine {
         //System.out.println("Screen:");
 
 
-        printSlotFace(slotFace);
+//        printSlotFace(slotFace);
 
         List<WinData> winDataList = new ArrayList<>();
         int cascadeCounter = 0;
         boolean fsTriggered = false;
         do {
             cascadeCounter++;
-            winDataList = calculateWin(slotFace, stake, boardHeight, boardWidth);
+            winDataList = calculateWin(slotFace, stake);
             fsTriggered = checkForScatterSym(slotFace);
             totalWin = getTotalWin(winDataList, totalWin);
             if (!winDataList.isEmpty()) {
@@ -74,12 +85,12 @@ public class SlotMachine {
                 //System.out.println("Cascade: " + cascadeCounter);
                 removeSymFromWinPos(winDataList, slotFace);
                 //System.out.println("Screen after removing Winning Symbols");
-                printSlotFace(slotFace);
+//                printSlotFace(slotFace);
                 shiftSymbolsDownwards(slotFace);
                 int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
                 //System.out.println();
-                //System.out.println("Shifted Symbols ");
-                printSlotFace(slotFace);
+//                //System.out.println("Shifted Symbols ");
+//                printSlotFace(slotFace);
                 if (numOfEmptySym > 0) {
                     fillTopReelEmptyPos(rng, numOfEmptySym, slotFace);
                 }
@@ -159,8 +170,9 @@ public class SlotMachine {
 
         List<Integer> reelLengths = GameUtility.getReelLength(bgReels);
         int reelIdx = 0;
-        for (String[] reel : slotFace) {
-            for (int i = boardHeight - 1; i > 0; i--) {
+        for (int col = 0; col < boardWidth; col++) {
+            String[] reel = slotFace.get(col);
+            for (int i = reel.length - 1; i > 0; i--) {
                 if (reel[i].contains("-1") && (i > 0 && i < 5)) {
                     stopPositions.set(reelIdx, stopPositions.get(reelIdx) + reelLengths.get(reelIdx) - 1);
                     stopPositions.set(reelIdx, stopPositions.get(reelIdx) % reelLengths.get(reelIdx));
@@ -172,7 +184,7 @@ public class SlotMachine {
         }
         //System.out.println("New stop positions: " + stopPositions.stream().map(Object::toString).collect(Collectors.joining("-")));
         //System.out.println("New screen ");
-        printSlotFace(slotFace);
+//        printSlotFace(slotFace);
         return slotFace;
     }
 
@@ -185,7 +197,7 @@ public class SlotMachine {
         boolean some;
         for (String[] reel : slotFaceContainingRemovedSymbols) {
 
-            for (int i = boardHeight - 1; i > 1; i--) {
+            for (int i = reel.length - 1; i > 1; i--) {
 
                 if (reel[i].contains("-1")) {
                     some = false;
@@ -205,15 +217,16 @@ public class SlotMachine {
         }
     }
 
-    private static void printSlotFace(List<String[]> slotFace) {
-        for (int row = 0; row < boardHeight; row++) {
-            for (int col = 0; col < boardWidth; col++) {
-
-                //System.out.print(" " + slotFace.get(col)[row]);
-            }
-            //System.out.println();
-        }
-    }
+//    private static void printSlotFace(List<String[]> slotFace) {
+//
+//        for (int col = 0; col < boardWidth; col++) {
+//            for (int row = 0; row < slotFace.get(col).length; row++) {
+//
+//                //System.out.print(" " + slotFace.get(col)[row]);
+//            }
+//            //System.out.println();
+//        }
+//    }
 
     private static void removeSymFromWinPos(List<WinData> winDataList, List<String[]> slotFace) {
         for (WinData win : winDataList) {
@@ -227,8 +240,8 @@ public class SlotMachine {
     }
 
     private static String[] selectReels(int boardHeight, String[] reel, int position) {
-        String[] boardReel = new String[boardHeight];
-        for (int i = 1; i < boardHeight; i++) {
+        String[] boardReel = new String[boardHeight + 1];
+        for (int i = 1; i <= boardHeight; i++) {
             boardReel[i] = reel[(position + i) % reel.length];
         }
         return boardReel;
@@ -253,11 +266,11 @@ public class SlotMachine {
         return boardReel;
     }
 
-    private static List<WinData> calculateWin(List<String[]> slotFace, int stake, int boardHeight, int boardWidth) {
+    private static List<WinData> calculateWin(List<String[]> slotFace, int stake) {
         BigDecimal totalWin = BigDecimal.ZERO;
         List<WinData> winDataList = new ArrayList<>();
 
-        for (int row = 0; row < boardHeight; row++) {
+        for (int row = 0; row < slotFace.getFirst().length; row++) {
 
             String symToCompare = slotFace.getFirst()[row]; // only first column elements need to be compared.
             boolean exists = winDataList.stream().anyMatch(sym -> sym.getSymbolName().equals(symToCompare)); // if the symbol is already compared
@@ -265,7 +278,7 @@ public class SlotMachine {
                 continue;
             }
 
-            WinData winData = checkForWinCombination(symToCompare, boardHeight, boardWidth, slotFace);
+            WinData winData = checkForWinCombination(symToCompare, slotFace);
             populateWin(winData, winDataList, stake);
             if (winData.getWinAmount() != null) {
                 totalWin = totalWin.add(winData.getWinAmount());
@@ -285,7 +298,7 @@ public class SlotMachine {
         int counter = 0;
 
         for (int col = 0; col < boardWidth; col++) {
-            for (int row = 0; row < boardHeight; row++) {
+            for (int row = 0; row < slotFace.get(col).length; row++) {
                 String sym = slotFace.get(col)[row];
                 if (sym.contains(SCATTER)) {
                     counter++;
@@ -318,7 +331,7 @@ public class SlotMachine {
         }
     }
 
-    private static WinData checkForWinCombination(String symToCompare, int boardHeight, int boardWidth, List<String[]> slotFace) {
+    private static WinData checkForWinCombination(String symToCompare, List<String[]> slotFace) {
         SlotSymbolWaysPayConfig payOut = getPayout().get(symToCompare);
         WinData winData = new WinData();
         List<Integer> posList = new ArrayList<>();
@@ -330,7 +343,7 @@ public class SlotMachine {
             int pos = col;
             if (col - currentCol > 1)
                 break;
-            for (int row = 0; row < boardHeight; row++) {
+            for (int row = 0; row < slotFace.get(col).length; row++) {
 
                 String currentSym = slotFace.get(col)[row];
 

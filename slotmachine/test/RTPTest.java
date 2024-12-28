@@ -51,10 +51,10 @@ public class RTPTest {
             BigDecimal freeSpinWins = BigDecimal.ZERO;
             Spin baseSpin = SlotMachine.playBaseGame(stake);
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
-            if (baseSpin.isFsTriggered()) {
-                Spin freeSpin = FreeSpins.playFreeSpins(rng);
-                freeSpinWins = freeSpin.getTotalWin();
-            }
+//            if (baseSpin.isFsTriggered()) {
+//                Spin freeSpin = FreeSpins.playFreeSpins(rng);
+//                freeSpinWins = freeSpin.getTotalWin();
+//            }
             totalWins = totalWins.add(baseGameWin).add(freeSpinWins);
         }
         int totalStake = stake * runs;
