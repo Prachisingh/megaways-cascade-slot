@@ -60,9 +60,13 @@ public class SlotMachine {
 
         List<WinData> winDataList;
         boolean fsTriggered;
+        int fsTrigCount = 0;
         do {
             winDataList = calculateWin(slotFace, stake);
             fsTriggered = checkForScatterSym(slotFace);
+            if (fsTriggered) {
+                fsTrigCount++;
+            }
             totalWin = getTotalWin(winDataList, totalWin);
             if (!winDataList.isEmpty()) {
                 removeSymFromWinPos(winDataList, slotFace);
@@ -76,7 +80,8 @@ public class SlotMachine {
             }
         } while (!winDataList.isEmpty());
 
-        spin.setFsTriggered(fsTriggered);
+        if (fsTrigCount > 0)
+            spin.setFsTriggered(true);
         spin.setTotalWin(totalWin);
 
         return spin;
@@ -255,7 +260,7 @@ public class SlotMachine {
                 }
             }
         }
-        return counter >= 3;
+        return counter >= 4;
     }
 
     private static void populateWin(WinData winData, List<WinData> winDataList, int stake) {
