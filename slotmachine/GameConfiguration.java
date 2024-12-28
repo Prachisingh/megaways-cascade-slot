@@ -132,4 +132,61 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(10, 6))
                 .addWeightedConfig(new WeightedPrizeConfig(6, 7));
     }
+
+    public static WeightedPrizeData reel1Fg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(35, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(27, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(15, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(13, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(7, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(3, 7));
+    }
+    public static WeightedPrizeData ree2SymFg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(35, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(28, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(14, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(12, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(7, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(4, 7));
+    }
+
+    public static WeightedPrizeData ree3SymFg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(35, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(29, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(15, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(10, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(8, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(3, 7));
+    }
+
+    public static WeightedPrizeData ree4SymFg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(35, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(27, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(17, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(11, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(6, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(4, 7));
+    }
+    public static WeightedPrizeData ree5SymFg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(31, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(25, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(20, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(13, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(7, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(4, 7));
+    }
+    public static WeightedPrizeData ree6SymFg() {
+        return new WeightedPrizeData()
+                .addWeightedConfig(new WeightedPrizeConfig(27, 2))
+                .addWeightedConfig(new WeightedPrizeConfig(25, 3))
+                .addWeightedConfig(new WeightedPrizeConfig(19, 4))
+                .addWeightedConfig(new WeightedPrizeConfig(14, 5))
+                .addWeightedConfig(new WeightedPrizeConfig(9, 6))
+                .addWeightedConfig(new WeightedPrizeConfig(6, 7));
+    }
 }

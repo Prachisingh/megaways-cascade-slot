@@ -21,11 +21,11 @@ public class SlotMachine {
     public static Spin play(int stake) {
         Random rng = new Random();
         Spin baseGameResponse = playBaseGame(stake);
-//        if (baseGameResponse.isFsTriggered) {
-//            System.out.println("========================= Fs triggered from base game ===============================");
-//            Spin freeSpinResponse = FreeSpins.playFreeSpins(rng);
-//            System.out.println("Total Free Spin Wins " + freeSpinResponse.getTotalWin());
-//        }
+        if (baseGameResponse.isFsTriggered) {
+            System.out.println("========================= Fs triggered from base game ===============================");
+            Spin freeSpinResponse = FreeSpins.playFreeSpins(rng);
+            System.out.println("Total Free Spin Wins " + freeSpinResponse.getTotalWin());
+        }
 
         return baseGameResponse;
     }
@@ -82,7 +82,7 @@ public class SlotMachine {
             totalWin = getTotalWin(winDataList, totalWin);
             if (!winDataList.isEmpty()) {
                 //System.out.println("============================================");
-                //System.out.println("Cascade: " + cascadeCounter);
+//                System.out.println("Cascade: " + cascadeCounter);
                 removeSymFromWinPos(winDataList, slotFace);
                 //System.out.println("Screen after removing Winning Symbols");
 //                printSlotFace(slotFace);

@@ -24,7 +24,7 @@ public class FreeSpins {
         int fsNum = 1;
         for (int i = 5; i > 0; i--) {
 
-            //System.out.println("Free Spin: " + fsNum++);
+            ////System.out.println("Free Spin: " + fsNum++);
 
             List<Integer> stopPosition = new ArrayList<>();
             String[] topReel = getTopReel(rng);
@@ -37,14 +37,23 @@ public class FreeSpins {
             int reelIdx = 1;
             for (String[] reel : freeSpinReels) {
                 stopPos = rng.nextInt(reel.length); //
-                if(reelIdx == 1 || reelIdx ==2) {
-                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1And2Sym());
+                if(reelIdx == 1) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1Fg());
                 }
-                if(reelIdx == 3 || reelIdx ==4) {
-                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3And4Sym());
+                if(reelIdx == 2) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.ree2SymFg());
                 }
-                if(reelIdx == 5 || reelIdx ==6) {
-                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5And6Sym());
+                if(reelIdx == 3) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.ree3SymFg());
+                }
+                if(reelIdx == 4) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.ree4SymFg());
+                }
+                if(reelIdx == 5) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.ree5SymFg());
+                }
+                if(reelIdx == 6) {
+                    boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.ree6SymFg());
                 }
                 String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
                 stopPosition.add(stopPos);
@@ -56,8 +65,8 @@ public class FreeSpins {
 
             // 0-6-27-10-3
 
-            //System.out.println("Stop Positions:" + stopPosition.stream().map(Object::toString).collect(Collectors.joining("-")));
-            //System.out.println("Screen:");
+            ////System.out.println("Stop Positions:" + stopPosition.stream().map(Object::toString).collect(Collectors.joining("-")));
+            ////System.out.println("Screen:");
             printSlotFace(slotFace);
 
             List<WinData> winDataList = new ArrayList<>();
@@ -72,15 +81,15 @@ public class FreeSpins {
                 }
                 totalWin = getTotalWin(winDataList, totalWin);
                 if (!winDataList.isEmpty()) {
-                    //System.out.println("============================================");
-                    //System.out.println("Cascade: " + cascadeCounter);
+                    ////System.out.println("============================================");
+                    ////System.out.println("Cascade: " + cascadeCounter);
                     removeSymFromWinPos(winDataList, slotFace);
-                    //System.out.println("Screen after removing Winning Symbols");
+                    ////System.out.println("Screen after removing Winning Symbols");
                     printSlotFace(slotFace);
                     shiftSymbolsDownwards(slotFace);
                     int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
-                    //System.out.println();
-                    //System.out.println("Shifted Symbols ");
+                    ////System.out.println();
+                    ////System.out.println("Shifted Symbols ");
                     printSlotFace(slotFace);
                     if (numOfEmptySym > 0) {
                         fillTopReelEmptyPos(rng, numOfEmptySym, slotFace);
@@ -92,7 +101,7 @@ public class FreeSpins {
 
         }
         freeSpin.setTotalWin(totalWin);
-        //System.out.println("Total Fs win: " + totalWin);
+        ////System.out.println("Total Fs win: " + totalWin);
 
         return freeSpin;
     }
@@ -174,8 +183,8 @@ public class FreeSpins {
             }
             reelIdx++;
         }
-        System.out.println("New stop positions: " + stopPositions.stream().map(Object::toString).collect(Collectors.joining("-")));
-        System.out.println("New screen ");
+        //System.out.println("New stop positions: " + stopPositions.stream().map(Object::toString).collect(Collectors.joining("-")));
+        //System.out.println("New screen ");
 //        printSlotFace(slotFace);
         return slotFace;
     }
@@ -213,9 +222,9 @@ public class FreeSpins {
         for (int row = 0; row < boardHeight; row++) {
             for (int col = 0; col < boardWidth; col++) {
 
-                //System.out.print(" " + slotFace.get(col)[row]);
+                ////System.out.print(" " + slotFace.get(col)[row]);
             }
-            //System.out.println();
+            ////System.out.println();
         }
     }
 
@@ -275,11 +284,11 @@ public class FreeSpins {
                 totalWin = totalWin.add(winData.getWinAmount());
             }
         }
-        System.out.println("Cascade win:" + totalWin);
+        //System.out.println("Cascade win:" + totalWin);
 
         for (WinData win : winDataList) {
 
-            System.out.println("- Ways win " + win.getPosList().stream().map(Object::toString).collect(Collectors.joining("-")) + ", " + win.getSymbolName() + " X" + win.getSymCountOnEachCol().size() + ", " + win.getWinAmount() + ", Ways: " + win.getWays());
+            //System.out.println("- Ways win " + win.getPosList().stream().map(Object::toString).collect(Collectors.joining("-")) + ", " + win.getSymbolName() + " X" + win.getSymCountOnEachCol().size() + ", " + win.getWinAmount() + ", Ways: " + win.getWays());
         }
 
         return winDataList;
@@ -297,7 +306,7 @@ public class FreeSpins {
             }
         }
         if (counter >= 3) {
-            //System.out.println("Free Spins Re-triggered");
+            ////System.out.println("Free Spins Re-triggered");
             return true;
         }
         return false;
@@ -322,7 +331,7 @@ public class FreeSpins {
         }
     }
 
-    private static WinData checkForWinCombination(String symToCompare,List<String[]> slotFace) {
+    private static WinData checkForWinCombination(String symToCompare, List<String[]> slotFace) {
         SlotSymbolWaysPayConfig payOut = getPayout().get(symToCompare);
         WinData winData = new WinData();
         List<Integer> posList = new ArrayList<>();
@@ -334,7 +343,7 @@ public class FreeSpins {
             int pos = col;
             if (col - currentCol > 1)
                 break;
-            for (int row = 0; row < boardHeight; row++) {
+            for (int row = 0; row < slotFace.get(col).length; row++) {
 
                 String currentSym = slotFace.get(col)[row];
 
