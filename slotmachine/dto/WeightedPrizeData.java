@@ -1,4 +1,6 @@
-package slotmachine.service;
+package slotmachine.dto;
+
+import slotmachine.config.WeightedPrizeConfig;
 
 import java.util.ArrayList;
 import java.util.List;

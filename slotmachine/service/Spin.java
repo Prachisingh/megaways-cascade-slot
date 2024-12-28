@@ -1,11 +1,11 @@
-package slotmachine;
+package slotmachine.service;
 
 import java.math.BigDecimal;
 
 public class Spin {
 
-    BigDecimal totalWin;
-    boolean isFsTriggered;
+   public BigDecimal totalWin;
+   public boolean isFsTriggered;
 
     public BigDecimal getTotalWin() {
         return totalWin;

@@ -1,4 +1,4 @@
-package slotmachine.service;
+package slotmachine.config;
 
 public class WeightedPrizeConfig {
     int weight;

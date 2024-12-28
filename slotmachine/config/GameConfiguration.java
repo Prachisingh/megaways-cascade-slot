@@ -1,7 +1,6 @@
-package slotmachine;
+package slotmachine.config;
 
-import slotmachine.service.WeightedPrizeConfig;
-import slotmachine.service.WeightedPrizeData;
+import slotmachine.dto.WeightedPrizeData;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -9,22 +8,21 @@ import java.util.List;
 import java.util.Map;
 
 public class GameConfiguration {
-    static int boardHeight = 4;
-    static int boardWidth = 6;
-
-    static String AA = "AA";
-    static String BB = "BB";
-    static String CC = "CC";
-    static String DD = "DD";
-    static String EE = "EE";
-    static String FF = "FF";
-    static String GG = "GG";
-    static String HH = "HH";
-    static String JJ = "JJ";
-    static String KK = "KK";
-    static String SC = "SC";
-    static String WC = "WC";
-    static String SCATTER = "SC";
+    public static int boardHeight = 4;
+    public static int boardWidth = 6;
+    public static String AA = "AA";
+    public static String BB = "BB";
+    public static String CC = "CC";
+    public static String DD = "DD";
+    public static String EE = "EE";
+    public static String FF = "FF";
+    public static String GG = "GG";
+    public static String HH = "HH";
+    public static String JJ = "JJ";
+    public static String KK = "KK";
+    public static String SC = "SC";
+    public static String WC = "WC";
+    public static String SCATTER = "SC";
 
 
     public static Map<String, SlotSymbolWaysPayConfig> getPayout() {
@@ -142,7 +140,7 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(7, 6))
                 .addWeightedConfig(new WeightedPrizeConfig(3, 7));
     }
-    public static WeightedPrizeData ree2SymFg() {
+    public static WeightedPrizeData reel2SymFg() {
         return new WeightedPrizeData()
                 .addWeightedConfig(new WeightedPrizeConfig(35, 2))
                 .addWeightedConfig(new WeightedPrizeConfig(28, 3))
@@ -152,7 +150,7 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(4, 7));
     }
 
-    public static WeightedPrizeData ree3SymFg() {
+    public static WeightedPrizeData reel3SymFg() {
         return new WeightedPrizeData()
                 .addWeightedConfig(new WeightedPrizeConfig(35, 2))
                 .addWeightedConfig(new WeightedPrizeConfig(29, 3))
@@ -162,7 +160,7 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(3, 7));
     }
 
-    public static WeightedPrizeData ree4SymFg() {
+    public static WeightedPrizeData reel4SymFg() {
         return new WeightedPrizeData()
                 .addWeightedConfig(new WeightedPrizeConfig(35, 2))
                 .addWeightedConfig(new WeightedPrizeConfig(27, 3))
@@ -171,7 +169,7 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(6, 6))
                 .addWeightedConfig(new WeightedPrizeConfig(4, 7));
     }
-    public static WeightedPrizeData ree5SymFg() {
+    public static WeightedPrizeData reel5SymFg() {
         return new WeightedPrizeData()
                 .addWeightedConfig(new WeightedPrizeConfig(31, 2))
                 .addWeightedConfig(new WeightedPrizeConfig(25, 3))
@@ -180,7 +178,7 @@ public class GameConfiguration {
                 .addWeightedConfig(new WeightedPrizeConfig(7, 6))
                 .addWeightedConfig(new WeightedPrizeConfig(4, 7));
     }
-    public static WeightedPrizeData ree6SymFg() {
+    public static WeightedPrizeData reel6SymFg() {
         return new WeightedPrizeData()
                 .addWeightedConfig(new WeightedPrizeConfig(27, 2))
                 .addWeightedConfig(new WeightedPrizeConfig(25, 3))

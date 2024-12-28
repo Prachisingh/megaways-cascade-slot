@@ -1,8 +1,8 @@
 package slotmachine.test;
 
-import slotmachine.FreeSpins;
-import slotmachine.SlotMachine;
-import slotmachine.Spin;
+import slotmachine.service.FreeSpins;
+import slotmachine.service.SlotMachine;
+import slotmachine.service.Spin;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -58,7 +58,7 @@ public class RTPTest {
             BigDecimal baseGameWin = BigDecimal.ZERO;
             BigDecimal freeSpinWins = BigDecimal.ZERO;
             BigDecimal currentsWins = BigDecimal.ZERO;
-            Spin baseSpin = SlotMachine.playBaseGame(stake);
+            Spin baseSpin = SlotMachine.playBaseGame(stake, rng);
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
             if (baseSpin.isFsTriggered()) {
                 numOfTimesFsTriggered++;
@@ -90,7 +90,7 @@ public class RTPTest {
         System.out.println("Highest win Multiplier: " + highestWinMultiplier);
         System.out.println("Number of times FreeSpins triggered "+ numOfTimesFsTriggered);
         System.out.println("Free Spin trigger frequency: " + runs/numOfTimesFsTriggered );
-        System.out.println("Free Spins Average pay: " + totalFreeSpinsWins.divide(BigDecimal.valueOf(numOfTimesFsTriggered)) );
+        System.out.println("Free Spins Average pay: " + totalFreeSpinsWins.divide(BigDecimal.valueOf(numOfTimesFsTriggered),new MathContext(4, RoundingMode.HALF_EVEN)));
 
 //        finished();
         latch.countDown();

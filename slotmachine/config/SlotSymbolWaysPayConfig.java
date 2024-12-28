@@ -1,4 +1,4 @@
-package slotmachine;
+package slotmachine.config;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
