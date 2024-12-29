@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class RTPTest {
 
-    static int runs = 1000_000;
+    static int runs = 1000_000_00;
     static int finishedCount = 0;
     static long startingTime;
     static BigDecimal totalWins = BigDecimal.ZERO;
@@ -62,7 +62,7 @@ public class RTPTest {
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
             if (baseSpin.isFsTriggered()) {
                 numOfTimesFsTriggered++;
-                Spin freeSpin = FreeSpins.playFreeSpins(rng);
+                Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded());
                 freeSpinWins = freeSpin.getTotalWin();
             }
             totalWins = totalWins.add(baseGameWin).add(freeSpinWins);

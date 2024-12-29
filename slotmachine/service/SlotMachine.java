@@ -23,14 +23,14 @@ public class SlotMachine {
 
         Spin baseGameResponse = playBaseGame(stake, rng);
         if (baseGameResponse.isFsTriggered) {
-            FreeSpins.playFreeSpins(rng);
+            FreeSpins.playFreeSpins(rng, baseGameResponse.getFsAwarded());
         }
     }
 
     public static Spin playBaseGame(int stake, Random rng) {
         Spin spin = new Spin();
         List<Integer> stopPosition = new ArrayList<>();
-        String[] topReel = getTopReel(rng);
+
         BigDecimal totalWin = BigDecimal.ZERO;
 
 
@@ -44,10 +44,10 @@ public class SlotMachine {
             if (reelIdx == 1 || reelIdx == 2) {
                 boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1And2Sym());
             }
-            if (reelIdx == 3 || reelIdx == 4) {
+            else if (reelIdx == 3 || reelIdx == 4) {
                 boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3And4Sym());
             }
-            if (reelIdx == 5 || reelIdx == 6) {
+            else if  (reelIdx == 5 || reelIdx == 6) {
                 boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5And6Sym());
             }
             String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
@@ -55,33 +55,34 @@ public class SlotMachine {
             slotFace.add(slotFaceReel);
             reelIdx++;
         }
+        String[] topReel = getTopReel(rng, stopPosition);
         slotFace.add(topReel);
         fillTopReel(slotFace, topReel);
 
         List<WinData> winDataList;
-        boolean fsTriggered;
-        int fsTrigCount = 0;
+        int scatterCount  = 0;
         do {
             winDataList = calculateWin(slotFace, stake);
-            fsTriggered = checkForScatterSym(slotFace);
-            if (fsTriggered) {
-                fsTrigCount++;
-            }
+            scatterCount = scatterCount+ checkForScatterSym(slotFace);
             totalWin = getTotalWin(winDataList, totalWin);
             if (!winDataList.isEmpty()) {
                 removeSymFromWinPos(winDataList, slotFace);
                 shiftSymbolsDownwards(slotFace);
                 int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
                 if (numOfEmptySym > 0) {
-                    fillTopReelEmptyPos(rng, numOfEmptySym, slotFace);
+                    fillTopReelEmptyPos(rng, numOfEmptySym, slotFace, stopPosition);
                 }
 
                 fillEmptyPosition(slotFace, stopPosition);
             }
         } while (!winDataList.isEmpty());
+        scatterCount = checkForScatterSym(slotFace);
+        if (scatterCount >= 4) {
 
-        if (fsTrigCount > 0)
+            int fsAwarded = 12 + ((scatterCount - 4) * 5);
+            spin.setFsAwarded(fsAwarded);
             spin.setFsTriggered(true);
+        }
         spin.setTotalWin(totalWin);
 
         return spin;
@@ -96,10 +97,11 @@ public class SlotMachine {
         return totalWin;
     }
 
-    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace) {
+    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions ) {
         String[] topReel = getReelSets().get(1).getFirst();
-        int topReelStopPos = rng.nextInt(topReel.length);
-        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, topReelStopPos);
+        stopPositions.set(6, stopPositions.get(6) + topReel.length+1);
+        stopPositions.set(6, stopPositions.get(6) % topReel.length);
+        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, stopPositions.get(6));
         int j = 0;
         for (int i = 1; i < 5; i++) {
 
@@ -137,10 +139,11 @@ public class SlotMachine {
         }
     }
 
-    private static String[] getTopReel(Random rng) {
+    private static String[] getTopReel(Random rng, List<Integer> stopPosition) {
         int topReelStopPos;
         String[] topReel = getReelSets().get(1).getFirst();
         topReelStopPos = rng.nextInt(topReel.length);
+        stopPosition.add(topReelStopPos);
         String[] topFaceReel = selectTopReel(6, topReel, topReelStopPos);
         return topFaceReel;
     }
@@ -249,7 +252,7 @@ public class SlotMachine {
         return winDataList;
     }
 
-    private static boolean checkForScatterSym(List<String[]> slotFace) {
+    private static int checkForScatterSym(List<String[]> slotFace) {
         int counter = 0;
 
         for (int col = 0; col < boardWidth; col++) {
@@ -260,7 +263,7 @@ public class SlotMachine {
                 }
             }
         }
-        return counter >= 4;
+        return counter;
     }
 
     private static void populateWin(WinData winData, List<WinData> winDataList, int stake) {

@@ -14,17 +14,16 @@ public class FreeSpins {
     static Random rng = new Random();
 
     public static void main(String[] args) {
-        playFreeSpins(rng);
+        playFreeSpins(rng, 12);
     }
 
-    public static Spin playFreeSpins(Random rng) {
+    public static Spin playFreeSpins(Random rng, int fsAwarded) {
         Spin freeSpin = new Spin();
         BigDecimal totalWin = BigDecimal.ZERO;
-        for (int i = 5; i > 0; i--) {
+        for (int i = fsAwarded; i > 0; i--) {
 
 
             List<Integer> stopPosition = new ArrayList<>();
-            String[] topReel = getTopReel(rng);
 
 
             List<String[]> slotFace = new ArrayList<>();
@@ -34,22 +33,22 @@ public class FreeSpins {
             int reelIdx = 1;
             for (String[] reel : freeSpinReels) {
                 stopPos = rng.nextInt(reel.length); //
-                if(reelIdx == 1) {
+                if (reelIdx == 1) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1Fg());
                 }
-                if(reelIdx == 2) {
+                else if (reelIdx == 2) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel2SymFg());
                 }
-                if(reelIdx == 3) {
+                else if (reelIdx == 3) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3SymFg());
                 }
-                if(reelIdx == 4) {
+                else if (reelIdx == 4) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel4SymFg());
                 }
-                if(reelIdx == 5) {
+                else if (reelIdx == 5) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5SymFg());
                 }
-                if(reelIdx == 6) {
+                else if (reelIdx == 6) {
                     boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel6SymFg());
                 }
                 String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
@@ -57,36 +56,33 @@ public class FreeSpins {
                 slotFace.add(slotFaceReel);
                 reelIdx++;
             }
+            String[] topReel = getTopReel(rng, stopPosition);
             slotFace.add(topReel);
             fillTopReel(slotFace, topReel);
 
-            List<WinData> winDataList ;
-
+            List<WinData> winDataList;
             do {
                 winDataList = calculateWin(slotFace, 1);
-                boolean isFsRetriggered = checkForScatterSym(slotFace);
-                if (isFsRetriggered) {
-                    i = i + 5;
-                }
+
                 totalWin = getTotalWin(winDataList, totalWin);
                 if (!winDataList.isEmpty()) {
                     removeSymFromWinPos(winDataList, slotFace);
                     shiftSymbolsDownwards(slotFace);
                     int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
                     if (numOfEmptySym > 0) {
-                        fillTopReelEmptyPos(rng, numOfEmptySym, slotFace);
+                        fillTopReelEmptyPos(rng, numOfEmptySym, slotFace, stopPosition);
                     }
 
                     fillEmptyPosition(slotFace, stopPosition);
                 }
             } while (!winDataList.isEmpty());
-
+            if (getScatterCount(slotFace) >= 3) {
+                i = i + 5;
+            }
         }
         freeSpin.setTotalWin(totalWin);
-
         return freeSpin;
     }
-
 
 
     private static BigDecimal getTotalWin(List<WinData> winDataList, BigDecimal totalWin) {
@@ -98,10 +94,11 @@ public class FreeSpins {
         return totalWin;
     }
 
-    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace) {
+    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions) {
         String[] topReel = getReelSets().get(3).getFirst();
-        int topReelStopPos = rng.nextInt(topReel.length);
-        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, topReelStopPos);
+        stopPositions.set(6, stopPositions.get(6) + topReel.length + 1);
+        stopPositions.set(6, stopPositions.get(6) % topReel.length);
+        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, stopPositions.get(6));
         int j = 0;
         for (int i = 1; i < 5; i++) {
 
@@ -139,10 +136,11 @@ public class FreeSpins {
         }
     }
 
-    private static String[] getTopReel(Random rng) {
+    private static String[] getTopReel(Random rng, List<Integer> stopPosition) {
         int topReelStopPos;
         String[] topReel = getReelSets().get(3).getFirst();
         topReelStopPos = rng.nextInt(topReel.length);
+        stopPosition.add(topReelStopPos);
         String[] topFaceReel = selectTopReel(6, topReel, topReelStopPos);
         return topFaceReel;
     }
@@ -251,7 +249,7 @@ public class FreeSpins {
         return winDataList;
     }
 
-    private static boolean checkForScatterSym(List<String[]> slotFace) {
+    private static int getScatterCount(List<String[]> slotFace) {
         int counter = 0;
 
         for (int col = 0; col < boardWidth; col++) {
@@ -262,7 +260,7 @@ public class FreeSpins {
                 }
             }
         }
-        return counter >= 3;
+        return counter;
     }
 
     private static void populateWin(WinData winData, List<WinData> winDataList, int stake) {
