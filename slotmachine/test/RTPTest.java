@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class RTPTest {
 
-    static int runs = 1000_000_00;
+    static int runs = 1000_00;
     static int finishedCount = 0;
     static long startingTime;
     static BigDecimal totalWins = BigDecimal.ZERO;
@@ -89,7 +89,8 @@ public class RTPTest {
         System.out.println("Highest win: " + highestWin);
         System.out.println("Highest win Multiplier: " + highestWinMultiplier);
         System.out.println("Number of times FreeSpins triggered "+ numOfTimesFsTriggered);
-        System.out.println("Free Spin trigger frequency: " + runs/numOfTimesFsTriggered );
+        System.out.println("Free Spin trigger frequency: " + (double)numOfTimesFsTriggered/runs );
+        System.out.println("Avg Spins to trigger free Spins : " + runs/numOfTimesFsTriggered );
         System.out.println("Free Spins Average pay: " + totalFreeSpinsWins.divide(BigDecimal.valueOf(numOfTimesFsTriggered),new MathContext(4, RoundingMode.HALF_EVEN)));
 
 //        finished();

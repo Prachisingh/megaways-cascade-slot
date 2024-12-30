@@ -10,6 +10,9 @@ import java.util.*;
 
 import static slotmachine.config.GameConfiguration.*;
 
+/**
+ * Class handles free spins.
+ */
 public class FreeSpins {
     static Random rng = new Random();
 
@@ -94,11 +97,10 @@ public class FreeSpins {
         return totalWin;
     }
 
-    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions) {
-        String[] topReel = getReelSets().get(3).getFirst();
-        stopPositions.set(6, stopPositions.get(6) + topReel.length + 1);
-        stopPositions.set(6, stopPositions.get(6) % topReel.length);
-        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, stopPositions.get(6));
+    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions ) {
+        String[] topReel = getReelSets().get(1).getFirst();
+
+        String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, stopPositions);
         int j = 0;
         for (int i = 1; i < 5; i++) {
 
@@ -140,8 +142,11 @@ public class FreeSpins {
         int topReelStopPos;
         String[] topReel = getReelSets().get(3).getFirst();
         topReelStopPos = rng.nextInt(topReel.length);
-        stopPosition.add(topReelStopPos);
+
         String[] topFaceReel = selectTopReel(6, topReel, topReelStopPos);
+        topReelStopPos += 3;
+        topReelStopPos = topReelStopPos % topReel.length;
+        stopPosition.add(topReelStopPos);
         return topFaceReel;
     }
 
@@ -201,17 +206,19 @@ public class FreeSpins {
     }
 
     private static String[] selectReels(int boardHeight, String[] reel, int position) {
-        String[] boardReel = new String[boardHeight +1 ];
+        String[] boardReel = new String[boardHeight + 1];
         for (int i = 1; i <= boardHeight; i++) {
-            boardReel[i] = reel[(position + i) % reel.length];
+            boardReel[i] = reel[(position + i-1) % reel.length];
         }
         return boardReel;
     }
 
-    private static String[] addElementsToTopReel(int numSym, String[] reel, int position) {
+    private static String[] addElementsToTopReel(int numSym, String[] reel, List<Integer> stopPositions) {
         String[] boardReel = new String[numSym];
         for (int i = 0; i < numSym; i++) {
-            boardReel[i] = reel[(position + i) % reel.length];
+            stopPositions.set(6, stopPositions.get(6) + reel.length+1);
+            stopPositions.set(6, stopPositions.get(6) % reel.length);
+            boardReel[i] = reel[stopPositions.get(6)];
         }
 
         return boardReel;
@@ -220,8 +227,9 @@ public class FreeSpins {
     private static String[] selectTopReel(int boardHeight, String[] reel, int position) {
         String[] boardReel = new String[boardHeight];
         for (int i = 1; i < boardHeight - 1; i++) {
-            boardReel[i] = reel[(position + i) % reel.length];
+            boardReel[i] = reel[(position + i-1) % reel.length];
         }
+        // -100 is used as empty symbols as edge symbols on first row, so that it contains just 4 symbols
         boardReel[0] = "-100";
         boardReel[5] = "-100";
         return boardReel;

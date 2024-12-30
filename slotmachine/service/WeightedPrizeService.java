@@ -5,6 +5,9 @@ import slotmachine.dto.WeightedPrizeData;
 
 import java.util.Random;
 
+/**
+ * Class that retrieves prizes based on chances given in maths.
+ */
 public class WeightedPrizeService {
 
     public static int getPrizes(Random rng, WeightedPrizeData weightedPrizeData){
