@@ -15,15 +15,18 @@ public class WinBand {
         this.total = BigDecimal.ZERO;
     }
 
-    public void update(BigDecimal value) {
+    public boolean update(BigDecimal value) {
         if (this.isValid(value)) {
             this.count = this.count.add(BigDecimal.ONE);
             this.total = this.total.add(value);
+            return true;
+        } else {
+            return false;
         }
-
     }
-
     private boolean isValid(BigDecimal value) {
+        if(isMinAndMaxSame()) return value.compareTo(this.min) == 0;
+
         return value.compareTo(this.min) >= 0 && this.max.compareTo(value) > 0;
     }
 
@@ -49,5 +52,9 @@ public class WinBand {
 
     public BigDecimal getMax() {
         return this.max;
+    }
+
+    public boolean isMinAndMaxSame(){
+        return this.min.compareTo(this.max) == 0;
     }
 }

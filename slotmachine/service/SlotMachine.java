@@ -3,10 +3,14 @@ package slotmachine.service;
 import slotmachine.config.SlotSymbolWaysPayConfig;
 import slotmachine.dto.WinData;
 import slotmachine.config.GameConfiguration;
+import slotmachine.test.WinBand;
 import slotmachine.util.GameUtility;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static slotmachine.config.GameConfiguration.*;
 
@@ -63,6 +67,7 @@ public class SlotMachine {
         fillTopReel(slotFace, topReel);
 
         List<WinData> winDataList;
+        List<List<WinData>> cascadeList = new ArrayList<>();
         int scatterCount  = 0;
         do {
             winDataList = calculateWin(slotFace, stake);
@@ -78,6 +83,8 @@ public class SlotMachine {
 
                 fillEmptyPosition(slotFace, stopPosition);
             }
+            cascadeList.add(winDataList);
+            spin.setCascadeList(cascadeList);
         } while (!winDataList.isEmpty());
         scatterCount = checkForScatterSym(slotFace);
         if (scatterCount >= 4) {
@@ -87,7 +94,6 @@ public class SlotMachine {
             spin.setFsTriggered(true);
         }
         spin.setTotalWin(totalWin);
-
         return spin;
     }
 
@@ -254,6 +260,12 @@ public class SlotMachine {
             if (winData.getWinAmount() != null) {
                 totalWin = totalWin.add(winData.getWinAmount());
             }
+        }
+//        System.out.println("Cascade win:" + totalWin);
+
+        for (WinData win : winDataList) {
+
+//            System.out.println("- Ways win " + win.getPosList().stream().map(Object::toString).collect(Collectors.joining("-")) + ", " + win.getSymbolName() + " X" + win.getSymCountOnEachCol().size() + ", " + win.getWinAmount() + ", Ways: " + win.getWays());
         }
 
         return winDataList;
