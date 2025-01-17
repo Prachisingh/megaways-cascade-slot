@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 
 public class RTPTest {
 
-    static int runs = 5000_000_0;
+    static int runs = 1000_000;
     static int finishedCount = 0;
     static long startingTime;
     static BigDecimal totalWins = BigDecimal.ZERO;
@@ -73,12 +73,14 @@ public class RTPTest {
             BigDecimal freeSpinWins = BigDecimal.ZERO;
             BigDecimal currentWins = BigDecimal.ZERO;
             Spin baseSpin = SlotMachine.playBaseGame(stake, rng);
+            calculateOfAKindWins(baseSpin, winningMap);
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
             if (baseSpin.isFsTriggered()) {
                 numOfTimesFsTriggered++;
                 Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded());
                 freeSpinWins = freeSpin.getTotalWin();
-                calculateOfAKindWins(baseSpin, winningMap);
+                calculateOfAKindWins(freeSpin, winningMap);
+
             }
             totalWins = totalWins.add(baseGameWin).add(freeSpinWins);
             currentWins = baseGameWin.add(freeSpinWins);

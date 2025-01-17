@@ -1,16 +1,12 @@
 package slotmachine.service;
 
+import slotmachine.config.GameConfiguration;
 import slotmachine.config.SlotSymbolWaysPayConfig;
 import slotmachine.dto.WinData;
-import slotmachine.config.GameConfiguration;
-import slotmachine.test.WinBand;
 import slotmachine.util.GameUtility;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static slotmachine.config.GameConfiguration.*;
 
@@ -94,6 +90,7 @@ public class SlotMachine {
             spin.setFsTriggered(true);
         }
         spin.setTotalWin(totalWin);
+
         return spin;
     }
 

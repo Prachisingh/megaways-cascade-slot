@@ -23,6 +23,7 @@ public class FreeSpins {
     public static Spin playFreeSpins(Random rng, int fsAwarded) {
         Spin freeSpin = new Spin();
         BigDecimal totalWin = BigDecimal.ZERO;
+        List<List<WinData>> cascadeList = new ArrayList<>();
         for (int i = fsAwarded; i > 0; i--) {
 
 
@@ -64,6 +65,7 @@ public class FreeSpins {
             fillTopReel(slotFace, topReel);
 
             List<WinData> winDataList;
+
             do {
                 winDataList = calculateWin(slotFace, 1);
 
@@ -78,6 +80,8 @@ public class FreeSpins {
 
                     fillEmptyPosition(slotFace, stopPosition);
                 }
+                cascadeList.add(winDataList);
+                freeSpin.setCascadeList(cascadeList);
             } while (!winDataList.isEmpty());
             if (getScatterCount(slotFace) >= 3) {
                 i = i + 5;
