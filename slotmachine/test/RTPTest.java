@@ -7,46 +7,94 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RTPTest {
 
-    static int runs = 1000_000;
+    static int eachRun = 125000_00;
     static int finishedCount = 0;
     static long startingTime;
-    static BigDecimal totalWins = BigDecimal.ZERO;
-    static BigDecimal totalFreeSpinsWins = BigDecimal.ZERO;
-    static BigDecimal totalBaseGameWins = BigDecimal.ZERO;
-    static BigDecimal highestWinMultiplier = BigDecimal.ZERO;
-
-    static BigDecimal highestWin = BigDecimal.ZERO;
-    static int numOfTimesFsTriggered;
+    static RtpResult rtpResult = new RtpResult();
+    private static int finishedThreadCount = 0;
+    static int availableThreads = Runtime.getRuntime().availableProcessors();
+    static int stake = 1;
 
 
     public static void main(String[] args) throws InterruptedException {
-        ExecutorService executorService;
         int numOfAvailableThreads = Runtime.getRuntime().availableProcessors();
         System.out.println("available number of threads =  " + numOfAvailableThreads);
         startingTime = System.currentTimeMillis();
-        executorService = Executors.newFixedThreadPool(numOfAvailableThreads);
-        int stake1 = 1;
-        int stake2 = 2;
-        int stake3 = 3;
 
-        CountDownLatch countDownLatch = new CountDownLatch(3);
-        executorService.submit(() -> playGame(stake1, countDownLatch));
-//        executorService.submit(() -> playGame(stake2, countDownLatch));
-//        executorService.submit(() -> playGame(stake3, countDownLatch));
-        executorService.shutdown();
-        countDownLatch.await();
-        long timeTakes = System.currentTimeMillis() - startingTime;
-        System.out.println("Over all Time taken by thread " + timeTakes);
+        ExecutorService executorService = Executors.newFixedThreadPool(numOfAvailableThreads);
+        for (int i = 0; i < numOfAvailableThreads; i++) {
+            executorService.submit(() -> runTask());
+        }
 
     }
 
-    private static void playGame(int stake, CountDownLatch latch) {
+    private static RtpResult playGame() {
+        BigDecimal totalWins = BigDecimal.ZERO;
+        BigDecimal totalFreeSpinsWins = BigDecimal.ZERO;
+        BigDecimal totalBaseGameWins = BigDecimal.ZERO;
+        BigDecimal highestWinMultiplier = BigDecimal.ZERO;
+
+        BigDecimal highestWin = BigDecimal.ZERO;
+        int numOfTimesFsTriggered = 0;
+        RtpResult rtpRe = new RtpResult();
+//        List<WinBand> winSummaryBands = getWinBands();
+//        long time = System.currentTimeMillis();
+        Random rng = new Random();
+//        Map<String, OfAKindWins> winningMap = new HashMap<>();
+        for (int i = 0; i < eachRun; i++) {
+
+            BigDecimal baseGameWin = BigDecimal.ZERO;
+            BigDecimal freeSpinWins = BigDecimal.ZERO;
+            BigDecimal currentWins = BigDecimal.ZERO;
+            Spin baseSpin = SlotMachine.playBaseGame(stake, rng);
+            //calculateOfAKindWins(baseSpin, winningMap);
+            baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
+            if (baseSpin.isFsTriggered()) {
+                numOfTimesFsTriggered++;
+                Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded());
+                freeSpinWins = freeSpin.getTotalWin();
+                // calculateOfAKindWins(freeSpin, winningMap);
+
+            }
+            totalWins = totalWins.add(baseGameWin).add(freeSpinWins);
+            currentWins = baseGameWin.add(freeSpinWins);
+            totalFreeSpinsWins = totalFreeSpinsWins.add(freeSpinWins);
+
+            totalBaseGameWins = totalBaseGameWins.add(baseGameWin);
+
+            BigDecimal currentWinMultiplier = currentWins.divide(BigDecimal.valueOf(stake), new MathContext(4, RoundingMode.HALF_EVEN));
+            if (currentWinMultiplier.compareTo(highestWinMultiplier) > 0) {
+                highestWinMultiplier = currentWinMultiplier;
+
+            }
+            if (currentWins.compareTo(highestWin) > 0) {
+                highestWin = currentWins;
+
+            }
+//            for (WinBand winBand : winSummaryBands) {
+//                boolean updated = winBand.update(currentWins.divide(BigDecimal.valueOf(stake), new MathContext(4, RoundingMode.HALF_EVEN)));
+//                if (updated) break;
+//            }
+        }
+        RtpResult rtpResult = new RtpResult();
+        rtpResult.setTotalWins(totalWins);
+        rtpResult.setTotalFreeSpinsWins(totalFreeSpinsWins);
+        rtpResult.setTotalBaseGameWins(totalBaseGameWins);
+        rtpResult.setHighestWinMultiplier(highestWinMultiplier);
+        rtpResult.setHighestWin(highestWin);
+        rtpResult.setNumOfTimesFsTriggered(numOfTimesFsTriggered);
+        rtpResult.setTotalRuns(eachRun);
+
+        return rtpResult;
+
+    }
+
+    private static List<WinBand> getWinBands() {
         List<WinBand> winSummaryBands = new ArrayList<>();
         winSummaryBands.add(new WinBand(0, 0));
         winSummaryBands.add(new WinBand(0, 0.5));
@@ -64,72 +112,7 @@ public class RTPTest {
         winSummaryBands.add(new WinBand(60, 70));
         winSummaryBands.add(new WinBand(70, 90));
         winSummaryBands.add(new WinBand(90, 110));
-        long time = System.currentTimeMillis();
-        Random rng = new Random();
-        Map<String, OfAKindWins> winningMap = new HashMap<>();
-        int totalStake = stake * runs;
-        for (int i = 0; i < runs; i++) {
-            BigDecimal baseGameWin = BigDecimal.ZERO;
-            BigDecimal freeSpinWins = BigDecimal.ZERO;
-            BigDecimal currentWins = BigDecimal.ZERO;
-            Spin baseSpin = SlotMachine.playBaseGame(stake, rng);
-            calculateOfAKindWins(baseSpin, winningMap);
-            baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
-            if (baseSpin.isFsTriggered()) {
-                numOfTimesFsTriggered++;
-                Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded());
-                freeSpinWins = freeSpin.getTotalWin();
-                calculateOfAKindWins(freeSpin, winningMap);
-
-            }
-            totalWins = totalWins.add(baseGameWin).add(freeSpinWins);
-            currentWins = baseGameWin.add(freeSpinWins);
-            totalFreeSpinsWins = totalFreeSpinsWins.add(freeSpinWins);
-            totalBaseGameWins = totalBaseGameWins.add(baseGameWin);
-            BigDecimal currentWinMultiplier = currentWins.divide(BigDecimal.valueOf(stake), new MathContext(4, RoundingMode.HALF_EVEN));
-            if (currentWinMultiplier.compareTo(highestWinMultiplier) > 0) {
-                highestWinMultiplier = currentWinMultiplier;
-            }
-            if (currentWins.compareTo(highestWin) > 0) {
-                highestWin = currentWins;
-            }
-//            updateWinBreakdown(winBreakdown, roundResult.getWinLineWins());
-            for (WinBand winBand : winSummaryBands) {
-                boolean updated = winBand.update(currentWins.divide(BigDecimal.valueOf(stake), new MathContext(4, RoundingMode.HALF_EVEN)));
-                if(updated) break;
-            }
-        }
-
-
-        long timeTaken = System.currentTimeMillis() - time;
-        System.out.println("time taken : " + (timeTaken / 1000) / 60);
-        System.out.println("Total Win: " + totalWins);
-        BigDecimal rtp = totalWins.divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN));
-        System.out.println("RTP is " + rtp + "%");
-        System.out.println("Breakup:");
-        System.out.println("Base Game RTP :" + totalBaseGameWins.divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN)));
-        System.out.println("Free Spins RTP :" + totalFreeSpinsWins.divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN)));
-        System.out.println("Highest win: " + highestWin);
-        System.out.println("Highest win Multiplier: " + highestWinMultiplier);
-        System.out.println("Number of times FreeSpins triggered " + numOfTimesFsTriggered);
-        System.out.println("Free Spin trigger frequency: " + (double) numOfTimesFsTriggered / runs);
-        System.out.println("Avg Spins to trigger free Spins : " + runs / numOfTimesFsTriggered);
-        System.out.println("Free Spins Average pay: " + totalFreeSpinsWins.divide(BigDecimal.valueOf(numOfTimesFsTriggered), new MathContext(4, RoundingMode.HALF_EVEN)));
-        System.out.println();
-        getPayDistributionForEachSymbol(winningMap, totalStake);
-
-        MathContext mathContext = new MathContext(6, RoundingMode.HALF_EVEN);
-        for(WinBand winSummaryBand :winSummaryBands){
-            BigDecimal frequency = winSummaryBand.getCount().divide(BigDecimal.valueOf(runs), mathContext);
-            System.out.println("win between " + winSummaryBand.getMin() + " and " + winSummaryBand.getMax() + " count: " +  winSummaryBand.getCount());
-            System.out.println("win between " + winSummaryBand.getMin() + " and " + winSummaryBand.getMax() + " frequency: " + frequency);
-            System.out.println("--------------------------------------------------------");
-            System.out.println();
-        }
-
-
-//        finished();
-        latch.countDown();
+        return winSummaryBands;
     }
 
     private static void getPayDistributionForEachSymbol(Map<String, OfAKindWins> winningMap, int totalStake) {
@@ -201,6 +184,53 @@ public class RTPTest {
         if (finishedCount == 3) {
             long timeTakes = System.currentTimeMillis() - startingTime;
             System.out.println("Over all Time taken by thread " + timeTakes / 1000);
+        }
+    }
+
+    private static synchronized void addToRtpResult(RtpResult newRtpResult) {
+
+        ++finishedThreadCount;
+        if (rtpResult == null) {
+            rtpResult = newRtpResult;
+        } else {
+            rtpResult.merge(newRtpResult);
+        }
+
+        if (finishedThreadCount == availableThreads) {
+            printData();
+
+
+//            RtpOutput.writeRtpResultToExcelFile(command + RtpUtils.convertNumToStrings(this.rtpResult.getTotalRuns()) + "_Summary" + rtp.unscaledValue(), this.rtpResult);
+        }
+    }
+
+    private static void printData() {
+        int totalStake = rtpResult.getTotalRuns() * stake;
+        System.out.println("thread running  " + finishedThreadCount + " out of " + availableThreads);
+        System.out.println("Total Win: " + rtpResult.getTotalWins());
+
+        BigDecimal rtp = rtpResult.getTotalWins().divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN));
+        System.out.println("Total Runs : " + rtpResult.getTotalRuns());
+        System.out.println("RTP is " + rtp + "%");
+        System.out.println("Breakup:");
+        System.out.println("Base Game RTP :" + rtpResult.getTotalBaseGameWins().divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN)));
+        System.out.println("Free Spins RTP :" + rtpResult.getTotalFreeSpinsWins().divide(BigDecimal.valueOf(totalStake), new MathContext(4, RoundingMode.HALF_EVEN)));
+        System.out.println("Highest win: " + rtpResult.getHighestWin());
+        System.out.println("Highest win Multiplier: " + rtpResult.getHighestWinMultiplier());
+        System.out.println("Number of times FreeSpins triggered " + rtpResult.getNumOfTimesFsTriggered());
+        System.out.println("Free Spin trigger frequency: " + (double) rtpResult.getNumOfTimesFsTriggered() / eachRun);
+        System.out.println("Avg Spins to trigger free Spins : " + eachRun / rtpResult.getNumOfTimesFsTriggered());
+        System.out.println("Free Spins Average pay: " + rtpResult.getTotalFreeSpinsWins().divide(BigDecimal.valueOf(rtpResult.getNumOfTimesFsTriggered()), new MathContext(4, RoundingMode.HALF_EVEN)));
+        System.out.println();
+    }
+
+    private static void runTask() {
+
+        try {
+            addToRtpResult(playGame());
+        } catch (Exception e) {
+            System.out.println("running the RTP_Single_Test_only.run() into errors with error message: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 }
