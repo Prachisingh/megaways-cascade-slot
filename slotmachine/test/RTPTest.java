@@ -10,9 +10,11 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static slotmachine.config.GameConfiguration.getReelSets;
+
 public class RTPTest {
 
-    static int eachRun = 125000_00;
+    static int eachRun = 125000_0;
     static int finishedCount = 0;
     static long startingTime;
     static RtpResult rtpResult = new RtpResult();
@@ -51,7 +53,8 @@ public class RTPTest {
             BigDecimal baseGameWin = BigDecimal.ZERO;
             BigDecimal freeSpinWins = BigDecimal.ZERO;
             BigDecimal currentWins = BigDecimal.ZERO;
-            Spin baseSpin = SlotMachine.playBaseGame(stake, rng);
+            List<String[]> bgReelSet = getReelSets().getFirst();
+            Spin baseSpin = SlotMachine.playBaseGame(stake, rng, false, bgReelSet);
             //calculateOfAKindWins(baseSpin, winningMap);
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
             if (baseSpin.isFsTriggered()) {

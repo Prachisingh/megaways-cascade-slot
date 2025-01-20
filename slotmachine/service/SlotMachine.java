@@ -23,14 +23,14 @@ public class SlotMachine {
     }
 
     public static void play(int stake, Random rng) {
-
-        Spin baseGameResponse = playBaseGame(stake, rng);
+        List<String[]> bgReelSet = getReelSets().getFirst();
+        Spin baseGameResponse = playBaseGame(stake, rng, false, bgReelSet);
         if (baseGameResponse.isFsTriggered) {
             FreeSpins.playFreeSpins(rng, baseGameResponse.getFsAwarded());
         }
     }
 
-    public static Spin playBaseGame(int stake, Random rng) {
+    public static Spin playBaseGame(int stake, Random rng, boolean isFreeGame, List<String[]> bgReelsA) {
         Spin spin = new Spin();
         List<Integer> stopPosition = new ArrayList<>();
 
@@ -39,49 +39,11 @@ public class SlotMachine {
 
         List<String[]> slotFace = new ArrayList<>();
 
-        int stopPos;
-        int reelIdx = 1;
-        List<String[]> bgReelsA = getReelSets().getFirst();
-        for (String[] reel : bgReelsA) {
-            stopPos = rng.nextInt(reel.length); //
-            if (reelIdx == 1 || reelIdx == 2) {
-                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1And2Sym());
-            }
-            else if (reelIdx == 3 || reelIdx == 4) {
-                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3And4Sym());
-            }
-            else if  (reelIdx == 5 || reelIdx == 6) {
-                boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5And6Sym());
-            }
-            String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
-            stopPosition.add(stopPos);
-            slotFace.add(slotFaceReel);
-            reelIdx++;
-        }
-        String[] topReel = getTopReel(rng, stopPosition);
-        slotFace.add(topReel);
-        fillTopReel(slotFace, topReel);
+        createGrid(rng, isFreeGame, bgReelsA, stopPosition, slotFace);
 
-        List<WinData> winDataList;
         List<List<WinData>> cascadeList = new ArrayList<>();
-        int scatterCount  = 0;
-        do {
-            winDataList = calculateWin(slotFace, stake);
-            scatterCount = scatterCount+ checkForScatterSym(slotFace);
-            totalWin = getTotalWin(winDataList, totalWin);
-            if (!winDataList.isEmpty()) {
-                removeSymFromWinPos(winDataList, slotFace);
-                shiftSymbolsDownwards(slotFace);
-                int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
-                if (numOfEmptySym > 0) {
-                    fillTopReelEmptyPos(rng, numOfEmptySym, slotFace, stopPosition);
-                }
-
-                fillEmptyPosition(slotFace, stopPosition);
-            }
-            cascadeList.add(winDataList);
-            spin.setCascadeList(cascadeList);
-        } while (!winDataList.isEmpty());
+        int scatterCount;
+        totalWin = cascade(stake, slotFace, totalWin, stopPosition, cascadeList, spin, isFreeGame);
         scatterCount = checkForScatterSym(slotFace);
         if (scatterCount >= 4) {
 
@@ -94,6 +56,74 @@ public class SlotMachine {
         return spin;
     }
 
+    public static void createGrid(Random rng, boolean isFreeGame, List<String[]> bgReelsA, List<Integer> stopPosition, List<String[]> slotFace) {
+        int stopPos;
+        int reelIdx = 1;
+        for (String[] reel : bgReelsA) {
+            stopPos = rng.nextInt(reel.length); //
+            if (isFreeGame) {
+                selectFsBoardHeight(rng, reelIdx);
+            } else {
+                selectBoardHeight(rng, reelIdx);
+            }
+
+            String[] slotFaceReel = selectReels(boardHeight, reel, stopPos);
+            stopPosition.add(stopPos);
+            slotFace.add(slotFaceReel);
+            reelIdx++;
+        }
+        String[] topReel = getTopReel(rng, stopPosition, isFreeGame);
+        slotFace.add(topReel);
+        fillTopReel(slotFace, topReel);
+    }
+
+    public static BigDecimal cascade(int stake, List<String[]> slotFace, BigDecimal totalWin, List<Integer> stopPosition, List<List<WinData>> cascadeList, Spin spin, boolean isFreeGame) {
+        List<WinData> winDataList;
+        do {
+            winDataList = calculateWin(slotFace, stake);
+            totalWin = getTotalWin(winDataList, totalWin);
+            if (!winDataList.isEmpty()) {
+                removeSymFromWinPos(winDataList, slotFace);
+                shiftSymbolsDownwards(slotFace);
+                int numOfEmptySym = shiftTopReelLeftAndGetNumOfEmptySym(slotFace);
+                if (numOfEmptySym > 0) {
+                    fillTopReelEmptyPos(numOfEmptySym, slotFace, stopPosition);
+                }
+
+                fillEmptyPosition(slotFace, stopPosition, isFreeGame);
+            }
+            cascadeList.add(winDataList);
+            spin.setCascadeList(cascadeList);
+        } while (!winDataList.isEmpty());
+        return totalWin;
+    }
+
+    private static void selectBoardHeight(Random rng, int reelIdx) {
+        if (reelIdx == 1 || reelIdx == 2) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1And2Sym());
+        } else if (reelIdx == 3 || reelIdx == 4) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3And4Sym());
+        } else if (reelIdx == 5 || reelIdx == 6) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5And6Sym());
+        }
+    }
+
+    private static void selectFsBoardHeight(Random rng, int reelIdx) {
+        if (reelIdx == 1) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel1Fg());
+        } else if (reelIdx == 2) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel2SymFg());
+        } else if (reelIdx == 3) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel3SymFg());
+        } else if (reelIdx == 4) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel4SymFg());
+        } else if (reelIdx == 5) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel5SymFg());
+        } else if (reelIdx == 6) {
+            boardHeight = WeightedPrizeService.getPrizes(rng, GameConfiguration.reel6SymFg());
+        }
+    }
+
     private static BigDecimal getTotalWin(List<WinData> winDataList, BigDecimal totalWin) {
         for (WinData win : winDataList) {
             if (win.getWinAmount() != null) {
@@ -103,7 +133,7 @@ public class SlotMachine {
         return totalWin;
     }
 
-    private static void fillTopReelEmptyPos(Random rng, int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions ) {
+    private static void fillTopReelEmptyPos(int numOfEmptySym, List<String[]> slotFace, List<Integer> stopPositions) {
         String[] topReel = getReelSets().get(1).getFirst();
 
         String[] topFaceReel = addElementsToTopReel(numOfEmptySym, topReel, stopPositions);
@@ -144,9 +174,15 @@ public class SlotMachine {
         }
     }
 
-    private static String[] getTopReel(Random rng, List<Integer> stopPosition) {
+    private static String[] getTopReel(Random rng, List<Integer> stopPosition, boolean isFreeGame) {
         int topReelStopPos;
-        String[] topReel = getReelSets().get(1).getFirst();
+        String[] topReel;
+        if (isFreeGame) {
+            topReel = getReelSets().get(3).getFirst();
+        } else {
+            topReel = getReelSets().get(1).getFirst();
+        }
+
         topReelStopPos = rng.nextInt(topReel.length);
 
         String[] topFaceReel = selectTopReel(6, topReel, topReelStopPos);
@@ -156,9 +192,15 @@ public class SlotMachine {
         return topFaceReel;
     }
 
-    private static void fillEmptyPosition(List<String[]> slotFace, List<Integer> stopPositions) {
-        List<String[]> bgReels = getReelSets().get(0);
-        List<Integer> reelLengths = GameUtility.getReelLength(bgReels);
+    private static void fillEmptyPosition(List<String[]> slotFace, List<Integer> stopPositions, boolean isFreeGame) {
+        List<String[]> reels;
+        if (isFreeGame) {
+            reels = getReelSets().get(2);
+        } else {
+            reels = getReelSets().getFirst();
+        }
+
+        List<Integer> reelLengths = GameUtility.getReelLength(reels);
         int reelIdx = 0;
         for (int col = 0; col < boardWidth; col++) {
             String[] reel = slotFace.get(col);
@@ -167,7 +209,7 @@ public class SlotMachine {
                     stopPositions.set(reelIdx, stopPositions.get(reelIdx) + reelLengths.get(reelIdx) - 1);
                     stopPositions.set(reelIdx, stopPositions.get(reelIdx) % reelLengths.get(reelIdx));
 
-                    reel[i] = bgReels.get(reelIdx)[stopPositions.get(reelIdx)];
+                    reel[i] = reels.get(reelIdx)[stopPositions.get(reelIdx)];
                 }
             }
             reelIdx++;
@@ -213,7 +255,7 @@ public class SlotMachine {
     private static String[] selectReels(int boardHeight, String[] reel, int position) {
         String[] boardReel = new String[boardHeight + 1];
         for (int i = 1; i <= boardHeight; i++) {
-            boardReel[i] = reel[(position + i-1) % reel.length];
+            boardReel[i] = reel[(position + i - 1) % reel.length];
         }
         return boardReel;
     }
@@ -221,7 +263,7 @@ public class SlotMachine {
     private static String[] addElementsToTopReel(int numSym, String[] reel, List<Integer> stopPositions) {
         String[] boardReel = new String[numSym];
         for (int i = 0; i < numSym; i++) {
-            stopPositions.set(6, stopPositions.get(6) + reel.length+1);
+            stopPositions.set(6, stopPositions.get(6) + reel.length + 1);
             stopPositions.set(6, stopPositions.get(6) % reel.length);
             boardReel[i] = reel[stopPositions.get(6)];
         }
@@ -232,7 +274,7 @@ public class SlotMachine {
     private static String[] selectTopReel(int boardHeight, String[] reel, int position) {
         String[] boardReel = new String[boardHeight];
         for (int i = 1; i < boardHeight - 1; i++) {
-            boardReel[i] = reel[(position + i-1) % reel.length];
+            boardReel[i] = reel[(position + i - 1) % reel.length];
         }
         // -100 is used as empty symbols as edge symbols on first row, so that it contains just 4 symbols
         boardReel[0] = "-100";
@@ -257,12 +299,6 @@ public class SlotMachine {
             if (winData.getWinAmount() != null) {
                 totalWin = totalWin.add(winData.getWinAmount());
             }
-        }
-//        System.out.println("Cascade win:" + totalWin);
-
-        for (WinData win : winDataList) {
-
-//            System.out.println("- Ways win " + win.getPosList().stream().map(Object::toString).collect(Collectors.joining("-")) + ", " + win.getSymbolName() + " X" + win.getSymCountOnEachCol().size() + ", " + win.getWinAmount() + ", Ways: " + win.getWays());
         }
 
         return winDataList;
