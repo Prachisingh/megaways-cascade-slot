@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class RTPTest {
 
-    static int eachRun = 125000_00;
+    static int eachRun = 125000_0;
     static int finishedCount = 0;
     static long startingTime;
     static RtpResult rtpResult = new RtpResult();

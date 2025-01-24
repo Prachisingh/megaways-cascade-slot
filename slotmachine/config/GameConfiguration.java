@@ -9,27 +9,27 @@ import java.util.Map;
 
 public class GameConfiguration {
     public  int boardHeight = 4;
-    public  int boardWidth = 6;
-    public  String AA = "AA";
-    public  String BB = "BB";
-    public  String CC = "CC";
-    public  String DD = "DD";
-    public  String EE = "EE";
-    public  String FF = "FF";
-    public  String GG = "GG";
-    public  String HH = "HH";
-    public  String JJ = "JJ";
-    public  String KK = "KK";
-    public  String SC = "SC";
-    public  String WC = "WC";
-    public  String SCATTER = "SC";
+    public  final int boardWidth = 6;
+    public  final String AA = "AA";
+    public  final String BB = "BB";
+    public  final String CC = "CC";
+    public  final String DD = "DD";
+    public  final String EE = "EE";
+    public  final String FF = "FF";
+    public  final String GG = "GG";
+    public  final String HH = "HH";
+    public  final String JJ = "JJ";
+    public  final String KK = "KK";
+    public  final String SC = "SC";
+    public  final String WC = "WC";
+    public  final String SCATTER = "SC";
 
     public int getBoardHeight() {
         return boardHeight;
     }
 
-    public int getBoardWidth() {
-        return boardWidth;
+    public void setBoardHeight(int boardHeight) {
+        this.boardHeight = boardHeight;
     }
 
     public  Map<String, SlotSymbolWaysPayConfig> payout = createPayout();
