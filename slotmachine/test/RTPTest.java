@@ -1,5 +1,6 @@
 package slotmachine.test;
 
+import slotmachine.config.GameConfiguration;
 import slotmachine.dto.WinData;
 import slotmachine.service.*;
 
@@ -10,11 +11,10 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static slotmachine.config.GameConfiguration.getReelSets;
 
 public class RTPTest {
 
-    static int eachRun = 125000_0;
+    static int eachRun = 125000_00;
     static int finishedCount = 0;
     static long startingTime;
     static RtpResult rtpResult = new RtpResult();
@@ -29,6 +29,7 @@ public class RTPTest {
         startingTime = System.currentTimeMillis();
 
         ExecutorService executorService = Executors.newFixedThreadPool(numOfAvailableThreads);
+        startingTime = System.currentTimeMillis();
         for (int i = 0; i < numOfAvailableThreads; i++) {
             executorService.submit(() -> runTask());
         }
@@ -36,6 +37,8 @@ public class RTPTest {
     }
 
     private static RtpResult playGame() {
+        // try creating config object here.
+        GameConfiguration gameConfiguration = new GameConfiguration();
         BigDecimal totalWins = BigDecimal.ZERO;
         BigDecimal totalFreeSpinsWins = BigDecimal.ZERO;
         BigDecimal totalBaseGameWins = BigDecimal.ZERO;
@@ -53,13 +56,13 @@ public class RTPTest {
             BigDecimal baseGameWin = BigDecimal.ZERO;
             BigDecimal freeSpinWins = BigDecimal.ZERO;
             BigDecimal currentWins = BigDecimal.ZERO;
-            List<String[]> bgReelSet = getReelSets().getFirst();
-            Spin baseSpin = SlotMachine.playBaseGame(stake, rng, false, bgReelSet);
+            List<String[]> bgReelSet = gameConfiguration.reelSets.getFirst();
+            Spin baseSpin = SlotMachine.playBaseGame(stake, rng, false, bgReelSet, gameConfiguration);
             //calculateOfAKindWins(baseSpin, winningMap);
             baseGameWin = baseGameWin.add(baseSpin.getTotalWin());
             if (baseSpin.isFsTriggered()) {
                 numOfTimesFsTriggered++;
-                Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded());
+                Spin freeSpin = FreeSpins.playFreeSpins(rng, baseSpin.getFsAwarded(), gameConfiguration);
                 freeSpinWins = freeSpin.getTotalWin();
                 // calculateOfAKindWins(freeSpin, winningMap);
 
@@ -200,6 +203,9 @@ public class RTPTest {
         }
 
         if (finishedThreadCount == availableThreads) {
+            long timeTaken = System.currentTimeMillis() - startingTime;
+            System.out.println(timeTaken);
+            System.out.println("time taken : " + (timeTaken/1000) + " seconds");
             printData();
 
 
